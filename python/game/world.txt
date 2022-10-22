@@ -1,0 +1,111 @@
+def grid_to_world(self, grid_x, grid_y):
+
+        # create a square with four vertices and their dimensions
+        rect = [
+            (grid_x * TILE_SIZE, grid_y * TILE_SIZE),
+            (grid_x * TILE_SIZE + TILE_SIZE, grid_y * TILE_SIZE),
+            (grid_x * TILE_SIZE + TILE_SIZE, grid_y * TILE_SIZE + TILE_SIZE),
+            (grid_x * TILE_SIZE, grid_y * TILE_SIZE + TILE_SIZE)
+        ]
+
+        rect_mini_map = [
+            (grid_x * TILE_SIZE_MINI_MAP, grid_y * TILE_SIZE_MINI_MAP),
+            # (grid_x * TILE_SIZE_MINI_MAP, grid_y*TILE_SIZE_MINI_MAP + 5 * TILE_SIZE_MINI_MAP ), left and top
+            # location of every square in mini map
+            (grid_x * TILE_SIZE_MINI_MAP + TILE_SIZE_MINI_MAP, grid_y * TILE_SIZE_MINI_MAP),
+            (grid_x * TILE_SIZE_MINI_MAP + TILE_SIZE_MINI_MAP, grid_y * TILE_SIZE_MINI_MAP + TILE_SIZE_MINI_MAP),
+            (grid_x * TILE_SIZE_MINI_MAP, grid_y * TILE_SIZE_MINI_MAP + TILE_SIZE_MINI_MAP)
+        ]
+
+        iso_poly = [self.cart_to_iso(x, y) for x, y in rect]
+        iso_poly_mini = [self.cart_to_iso(x, y) for x, y in rect_mini_map]
+
+        minx = min([x for x, y in iso_poly])
+        miny = min([y for x, y in iso_poly])
+
+        minx_mini = min([x for x, y in iso_poly_mini])
+        miny_mini = min([y for x, y in iso_poly_mini])
+
+        # create a random map
+        # Choose a random position in map
+        r = random.randint(1, 500)
+        o = random.randint(1, 10)
+        # Faire une forêt
+        perlin = 100 * noise.pnoise2(grid_x / self.perlin_scale, grid_y / self.perlin_scale, octaves=o)
+
+        if perlin >= 25:
+            tile = "Eau"
+        elif perlin <= -12.5:
+            tile = "Arbre"
+
+        else:
+            # Mettre des rochers OU des mines d'or aléatoirement à un taux de 0.8%
+            if (grid_x, grid_y) == STARTING_POS:
+                tile = ''
+            elif r <= 4:
+                r2 = random.randint(1, 2)
+                if r2 == 1:
+                    tile = "Or"
+                elif r2 == 2:
+                    tile = "Carrière de pierre"
+            elif 5 <= r <= 15:
+                tile = "Buisson"
+            # Un arbre isolé sera placé ici à un taux de 10%
+            elif r <= 50:
+                tile = "Arbre"
+            else:
+                tile = ""
+                # Ne rien mettre sur le block
+
+        # We create the Arbre's object here
+        if tile == "Arbre":
+            map_resource = Map_Tree(self.resource_manager)
+        # We create the rock's object here
+        elif tile == "Carrière de pierre":
+            map_resource = Map_Rock(self.resource_manager)
+        # We create the gold's object here
+        elif tile == "Or":
+            map_resource = Map_Gold(self.resource_manager)
+        # We create the bush's object here
+        elif tile == "Buisson":
+            map_resource = Map_Bush(self.resource_manager)
+        elif tile == "Eau":
+            map_resource = Map_Tree(self.resource_manager)
+
+        # Tile's Object
+        else:
+            map_resource = None
+
+        mining_team = ""
+        # this dict() store all kind of info of all elements in grid
+        out = {
+            "grid": [grid_x, grid_y],
+            "cart_rect": rect,  # square map
+            "cart_rect_mini_map": rect_mini_map,  # square mini map
+            "iso_poly": iso_poly,  # iso_poly map
+            "iso_poly_mini": iso_poly_mini,  # isopoly minimap
+            "render_pos": [minx, miny],
+            "render_pos_mini": [minx_mini, miny_mini],
+            "tile": tile,
+            "collision": False if tile == "" else True,
+            "class": map_resource,
+            "mining_team": mining_team
+        }
+
+
+
+def create_world(self):
+
+        world = []
+
+        for grid_x in range(self.grid_size_x):
+            world.append([])
+            for grid_y in range(self.grid_size_y):
+                world_tile = self.grid_to_world(grid_x, grid_y)
+                world[grid_x].append(world_tile)
+
+                render_pos = world_tile["render_pos"]
+                self.grass_tiles.blit(self.tiles["block"],
+                                      (render_pos[0] + self.grass_tiles.get_width() / 2, render_pos[1]))
+
+        return world

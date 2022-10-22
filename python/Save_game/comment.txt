@@ -1,0 +1,28 @@
+save_entities.json
+
+data:
+
+    {key:value}
+    type(key) = 'string'
+    type(value) = 'list'
+    value = [entity's team,entity's position, entity's health, entity's game_name, entity's age]
+
+
+save_map.json
+
+data:
+
+    {key:value}
+    type(key) = 'string'
+    type(value) = 'string'
+    key = position ('x,y')
+    value = tile's name
+
+save_units.json
+
+data: 
+
+    {key:value}
+    type(key) = 'string'
+    type(value) = 'list'
+    value = [unit's team,unit's position, unit's health, unit's game_name,unit's target_position]
